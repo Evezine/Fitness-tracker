@@ -85,6 +85,15 @@ if not workouts_df.empty:
     plt.grid()
     st.pyplot(plt)
 
+    # Export Data as CSV
+    csv = workouts_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download Workouts as CSV",
+        data=csv,
+        file_name='workouts.csv',
+        mime='text/csv'
+    )
+
 # MongoDB Cleanup
 def cleanup_db():
     collection.delete_many({})
