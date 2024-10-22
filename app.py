@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 # MongoDB Connection
 client = MongoClient("mongodb://localhost:27017/")  # Change this to your MongoDB connection string
@@ -54,6 +55,35 @@ if not workouts_df.empty:
     st.write(f"Total Workouts: {len(workouts_df)}")
     st.write(f"Total Duration: {total_duration} minutes")
     st.write(f"Total Calories Burned: {total_calories} calories")
+
+    # Visualization
+    st.header("Workout Visualizations")
+    
+    # Convert date column to datetime for plotting
+    workouts_df['date'] = pd.to_datetime(workouts_df['date'])
+    
+    # Group by date for total duration and calories
+    daily_summary = workouts_df.groupby('date').agg({'duration': 'sum', 'calories': 'sum'}).reset_index()
+    
+    # Plotting total duration over time
+    plt.figure(figsize=(10, 5))
+    plt.plot(daily_summary['date'], daily_summary['duration'], marker='o', linestyle='-', color='blue')
+    plt.title('Total Workout Duration Over Time')
+    plt.xlabel('Date')
+    plt.ylabel('Duration (minutes)')
+    plt.xticks(rotation=45)
+    plt.grid()
+    st.pyplot(plt)
+    
+    # Plotting total calories burned over time
+    plt.figure(figsize=(10, 5))
+    plt.plot(daily_summary['date'], daily_summary['calories'], marker='o', linestyle='-', color='orange')
+    plt.title('Total Calories Burned Over Time')
+    plt.xlabel('Date')
+    plt.ylabel('Calories')
+    plt.xticks(rotation=45)
+    plt.grid()
+    st.pyplot(plt)
 
 # MongoDB Cleanup
 def cleanup_db():
