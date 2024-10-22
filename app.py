@@ -21,18 +21,31 @@ def add_workout(date, exercise, duration, calories):
 
 # Function to get all workout data
 def get_workouts():
-    return pd.DataFrame(list(collection.find()))
+    workouts = list(collection.find())
+    # Convert ObjectId to string for the _id field
+    for workout in workouts:
+        workout['_id'] = str(workout['_id'])
+    return pd.DataFrame(workouts)
 
-# User authentication
+# Function to get leaderboard
+def get_leaderboard():
+    leaderboard = (
+        collection.aggregate([
+            {"$group": {"_id": "$exercise", "total_calories": {"$sum": "$calories"}}},
+            {"$sort": {"total_calories": -1}}
+        ])
+    )
+    return pd.DataFrame(list(leaderboard))
+
+# User authentication functions
 def authenticate_user(username, password):
-    # Check if the user exists in session state
     if username in st.session_state and st.session_state[username]['password'] == password:
         return True
     return False
 
 def signup_user(username, password):
     if username not in st.session_state:
-        st.session_state[username] = {'password': password}
+        st.session_state[username] = {'password': password, 'workouts': 0}
         st.success("Signup successful! You can now log in.")
     else:
         st.error("Username already exists. Please choose a different username.")
@@ -84,16 +97,18 @@ if st.session_state['authenticated']:
         if submitted:
             add_workout(date.strftime("%Y-%m-%d"), exercise, duration, calories)
             st.success("Workout logged successfully!")
+            # Increment workout count for the user
+            st.session_state[username]['workouts'] += 1
 
     # Display Logged Workouts
-    st.header("Your Workout Log")
+    st.header("Workout Log")
     workouts_df = get_workouts()
     if not workouts_df.empty:
         st.dataframe(workouts_df)
     else:
         st.write("No workouts logged yet.")
 
-    # Optional: Display workout statistics
+    # Display workout statistics
     if not workouts_df.empty:
         st.header("Workout Statistics")
         total_duration = workouts_df['duration'].sum()
@@ -101,6 +116,12 @@ if st.session_state['authenticated']:
         st.write(f"Total Workouts: {len(workouts_df)}")
         st.write(f"Total Duration: {total_duration} minutes")
         st.write(f"Total Calories Burned: {total_calories} calories")
+        
+        # Badge display
+        if st.session_state[username]['workouts'] >= 10:
+            st.success("🏆 Badge Earned: Workout Warrior! (10 workouts completed)")
+        if total_calories >= 500:
+            st.success("🔥 Badge Earned: Calorie Crusher! (500 calories burned)")
 
         # Visualization
         st.header("Workout Visualizations")
@@ -139,6 +160,14 @@ if st.session_state['authenticated']:
             file_name='workouts.csv',
             mime='text/csv'
         )
+
+    # Display Leaderboard
+    st.header("Leaderboard")
+    leaderboard_df = get_leaderboard()
+    if not leaderboard_df.empty:
+        st.dataframe(leaderboard_df)
+    else:
+        st.write("No workout data available for leaderboard.")
 
     # MongoDB Cleanup
     def cleanup_db():
