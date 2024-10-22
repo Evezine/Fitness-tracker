@@ -5,7 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 # MongoDB Connection
-client = MongoClient("mongodb+srv://viswa:6374353499@clustername.mongodb.net/database?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://viswa:6374353499@cluster0.zrpec.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['fitness_tracker']  # Database name
 collection = db['workouts']  # Collection name
 
