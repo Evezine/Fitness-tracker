@@ -46,7 +46,7 @@ if 'authenticated' not in st.session_state:
 
 # User authentication interface
 if not st.session_state['authenticated']:
-    st.subheader("User Authentication")
+    st.subheader("Member Login")
     option = st.selectbox("Select an option", ["Sign In", "Sign Up"])
     
     if option == "Sign Up":
